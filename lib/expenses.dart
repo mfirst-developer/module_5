@@ -22,16 +22,52 @@ class _ExpensesState extends State<Expenses>{
     Expense(title: "Taxi", amount: 1500.0, date: DateTime.now(), category: Category.work),
   ];
 
+  void _addExpense (Expense expense) {
+    setState(() {
+      expenses.add(expense);
+    });
+  }
+
+  void _removeExpense (Expense expense) {
+    final ind = expenses.indexOf(expense);
+    setState(() {
+      expenses.remove(expense);
+    });
+
+    void back () {
+      setState(() {
+        expenses.insert(ind, expense);
+      });
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Undo',
+        ),
+        content: Text("Expense deleted!"))
+    );
+  }
+
   void openAddExpenseOverlay() {
     showModalBottomSheet(
+        isScrollControlled: true,
         context: context,
         builder: (ctx) {
-          return NewExpense();
+          return NewExpense(add: _addExpense,);
         });
   }
 
+
   @override
   Widget build(BuildContext context) {
+
+    Widget _mainContent = const Center(child: Text("No expenses. Add someone!"));
+
+    if(expenses.isNotEmpty){
+      _mainContent = ExpensesList(expenses: expenses, onDelete: _removeExpense);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Expense Tracker"),
@@ -42,7 +78,7 @@ class _ExpensesState extends State<Expenses>{
       body:Column(
         children: [
           Text('chart'),
-          Expanded(child: ExpensesList(expenses: expenses))
+          Expanded(child: _mainContent)
         ],
       )
     );
